@@ -1,7 +1,8 @@
 import requests
 import telebot
-from config import BOT_TOKEN, GROUP_ID
+from config import BOT_TOKEN
 from parser_grup import get_members_grup
+from multiprocessing import Process, Queue
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -13,8 +14,13 @@ def handle_start(message):
 
 @bot.message_handler(commands=['созыв'])
 def dog_call(message):
+    q = Queue()
+    p1 = Process(target=get_members_grup, args=(message.chat.id, q), daemon=True)
+    p1.start()
+    members_grup = q.get()
+    p1.join()
     bot.send_message(message.chat.id,
-                     f"Собачий созыв!! АУУУУУУ🐺🌙\n{member_grup}\nпоставьте реакцию дизлайка, если вы не придете в созвон, это важно")
+                     f"Собачий созыв!! АУУУУУУ🐺🌙\n{members_grup}\nпоставьте реакцию дизлайка, если вы не придете в созвон, это важно")
 
 
 @bot.message_handler(commands=['котэ'])
@@ -27,5 +33,4 @@ def get_cat(message):
 
 
 if __name__ == '__main__':
-    member_grup = get_members_grup(GROUP_ID)
     bot.polling(none_stop=True)
