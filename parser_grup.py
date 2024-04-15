@@ -19,11 +19,9 @@ def get_members_grup(id_grup):
     ))
 
     for chat in result.chats:
-        try:
-            if chat.id == abs(id_grup):
-                group = chat
-        except:
-            continue
+        if chat.id == abs(id_grup):
+            group = chat
+            break
     string = ['@' + user.username if user.username else user.first_name for user in client.get_participants(group)]
     return ' '.join(string)
 
