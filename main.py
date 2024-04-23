@@ -14,11 +14,14 @@ def handle_start(message):
 
 @bot.message_handler(commands=['созыв'])
 def dog_call(message):
-    q = Queue()
-    p1 = Process(target=get_members_grup, args=(message.chat.id, q), daemon=True)
-    p1.start()
-    members_grup = q.get()
-    p1.join()
+    try:
+        q = Queue()
+        p1 = Process(target=get_members_grup, args=(message.chat.id, q), daemon=True)
+        p1.start()
+        members_grup = q.get(timeout=4)
+        p1.join()
+    except:
+        members_grup = '/all'
     bot.send_message(message.chat.id,
                      f"Собачий созыв!! АУУУУУУ🐺🌙\n{members_grup}\nпоставьте реакцию дизлайка, если вы не придете в созвон, это важно")
 
@@ -33,4 +36,8 @@ def get_cat(message):
 
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+    while True:
+        try:
+            bot.polling(none_stop=True)
+        except:
+            continue
