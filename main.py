@@ -36,8 +36,7 @@ def get_cat(message):
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            bot.polling(none_stop=True)
-        except:
-            continue
+    try:
+        bot.polling(none_stop=True)
+    except Exception as e:
+        print(f"Ошибка в боте: {e}")
