@@ -1,7 +1,7 @@
 import requests
 import telebot
 from config import BOT_TOKEN
-from parser_grup import get_members_grup
+from parser_group import get_members_group
 from multiprocessing import Process, Queue
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -12,18 +12,18 @@ def handle_start(message):
     bot.send_message(message.chat.id, f'Привет {message.from_user.first_name}!')
 
 
-@bot.message_handler(commands=['созыв'])
+@bot.message_handler(commands=['созыв', 'all'])
 def dog_call(message):
     try:
         q = Queue()
-        p1 = Process(target=get_members_grup, args=(message.chat.id, q), daemon=True)
-        p1.start()
-        members_grup = q.get(timeout=4)
-        p1.join()
+        new_process = Process(target=get_members_group, args=(message.chat.id, q), daemon=True)
+        new_process.start()
+        members_group = q.get(timeout=4)
+        new_process.join()
     except:
-        members_grup = '/all'
+        members_group = 'Приглашаем всех участников группы!'
     bot.send_message(message.chat.id,
-                     f"Собачий созыв!! АУУУУУУ🐺🌙\n{members_grup}\nпоставьте реакцию дизлайка, если вы не придете в созвон, это важно")
+                     f"Собачий созыв!! АУУУУУУ🐺🌙\n{members_group}\nпоставьте реакцию дизлайка, если вы не придете в созвон, это важно")
 
 
 @bot.message_handler(commands=['котэ'])
