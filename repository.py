@@ -22,14 +22,44 @@ def create_table(conn: sqlite3.Connection, create_table_sql: str) -> None:
         print(e)
 
 
-def insert_table(conn: sqlite3.Connection, sql: str, param: tuple[str]) -> None:
+def insert_table(conn: sqlite3.Connection, sql: str, param: tuple[str]) -> [int | None]:
+    last_id = None
     try:
         cur = conn.cursor()
         cur.execute(sql, param)
+        last_id = cur.lastrowid
         conn.commit()
-        print("Вставка успешно произведена")
+        print("Вставка прошла успешно")
     except Error as e:
         print(e)
+
+    return last_id
+
+def update_prediction(conn: sqlite3.Connection, id: int, text: str) -> bool:
+    flag = False
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE prediction SET text = ? WHERE id = ?", (text, id))
+        conn.commit()
+        print("Запись успешно обновлена")
+        flag = True
+    except Error as e:
+        print(e)
+
+    return flag
+
+def delite_prediction(conn: sqlite3.Connection, id: int) -> bool:
+    flag = False
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM prediction WHERE id = ?", (id,))
+        conn.commit()
+        print("Запись успешно удалена")
+        flag = True
+    except Error as e:
+        print(e)
+
+    return flag
 
 
 def select_all_prediction(conn: sqlite3.Connection) -> list[str]:
