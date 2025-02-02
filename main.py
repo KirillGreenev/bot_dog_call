@@ -1,3 +1,4 @@
+import time
 import random
 import requests
 import telebot
@@ -31,11 +32,11 @@ def handle_start(message):
 
 @bot.message_handler(commands=['add'])
 def add_prediction_handler(message):
-    user_states[message.chat.id] = 'waiting_for_add'
+    user_states[message.from_user.id] = 'waiting_for_add'
     bot.send_message(message.chat.id, "Напиши предсказание, которое хочешь добавить")
 
 
-@bot.message_handler(func=lambda message: user_states.get(message.chat.id) == 'waiting_for_add')
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == 'waiting_for_add')
 def ask_text_add(message):
     text = message.text
     last_id = insert_table(conn, "INSERT INTO prediction(text) VALUES(?)", (text,))
@@ -43,29 +44,29 @@ def ask_text_add(message):
         bot.send_message(message.chat.id, f"Предсказание успешно добавлено. Id для удаления или изменения {last_id}")
     else:
         bot.send_message(message.chat.id, "Не удалось добавить предсказание")
-    del user_states[message.chat.id]  # Удаляем состояние после завершения
+    del user_states[message.from_user.id]  # Удаляем состояние после завершения
 
 
 @bot.message_handler(commands=['upd'])
 def update_prediction_handler(message):
-    user_states[message.chat.id] = 'waiting_for_id_update'
+    user_states[message.from_user.id] = 'waiting_for_id_update'
     bot.send_message(message.chat.id, "Напиши id предсказания, которое хотите изменить")
 
 
-@bot.message_handler(func=lambda message: user_states.get(message.chat.id) == 'waiting_for_id_update')
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == 'waiting_for_id_update')
 def ask_id_update(message):
     try:
         id = int(message.text)
-        user_states[message.chat.id] = 'waiting_for_text_update'
-        update_id_prediction[message.chat.id] = id
+        user_states[message.from_user.id] = 'waiting_for_text_update'
+        update_id_prediction[message.from_user.id] = id
         bot.send_message(message.chat.id, "Введите текст на который хотите заменить текущее предсказание")
     except ValueError:
-        bot.send_message(message.chat.id, "Введите число id записи")
+        bot.send_message(message.chat.id, "id должно быть числом")
 
 
-@bot.message_handler(func=lambda message: user_states.get(message.chat.id) == 'waiting_for_text_update')
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == 'waiting_for_text_update')
 def ask_text_update(message):
-    id = update_id_prediction[message.chat.id]
+    id = update_id_prediction[message.from_user.id]
     text = message.text
 
     if update_prediction(conn, id, text):
@@ -73,17 +74,17 @@ def ask_text_update(message):
     else:
         bot.send_message(message.chat.id, "Не удалось  изменить предсказание")
 
-    del user_states[message.chat.id]
-    del update_id_prediction[message.chat.id]
+    del user_states[message.from_user.id]
+    del update_id_prediction[message.from_user.id]
 
 
 @bot.message_handler(commands=['del'])
 def delite_prediction_handler(message):
-    user_states[message.chat.id] = 'waiting_for_id_delite'
+    user_states[message.from_user.id] = 'waiting_for_id_delite'
     bot.send_message(message.chat.id, "Напиши id предсказания, которое хотите удалить")
 
 
-@bot.message_handler(func=lambda message: user_states.get(message.chat.id) == 'waiting_for_id_delite')
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == 'waiting_for_id_delite')
 def ask_id_delite(message):
     try:
         id = int(message.text)
@@ -92,9 +93,9 @@ def ask_id_delite(message):
         else:
             bot.send_message(message.chat.id, "Не удалось удалить предсказание")
 
-        del user_states[message.chat.id]
+        del user_states[message.from_user.id]
     except ValueError:
-        bot.send_message(message.chat.id, "Введите число id записи")
+        bot.send_message(message.chat.id, "id должно быть числом")
 
 
 @bot.message_handler(commands=['созыв', 'all', 'call'])
@@ -127,6 +128,7 @@ def get_prediction(message):
         if len(r) == 0:
             bot.send_message(message.chat.id, "В данный момент предсказаний нету, их можно добавить через команду /menu")
         else:
+            random.seed(time.time())
             ms = random.choice(r)
             name = '@' + message.from_user.username if message.from_user.username else message.from_user.first_name
             bot.send_message(message.chat.id, "🔮")
