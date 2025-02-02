@@ -90,14 +90,14 @@ def ask_id_delite(message):
         if delite_prediction(conn, id):
             bot.send_message(message.chat.id, "Предсказание успешно удалено")
         else:
-            bot.send_message(message.chat.id, "Не удалось  удалить предсказание")
+            bot.send_message(message.chat.id, "Не удалось удалить предсказание")
 
-        del user_states[message.chat.id]  # Удаляем состояние после завершения
+        del user_states[message.chat.id]
     except ValueError:
         bot.send_message(message.chat.id, "Введите число id записи")
 
 
-@bot.message_handler(commands=['созыв', 'all'])
+@bot.message_handler(commands=['созыв', 'all', 'call'])
 def dog_call(message):
     try:
         q = Queue()
@@ -125,11 +125,11 @@ def get_prediction(message):
     if conn is not None:
         r = select_all_prediction(conn)
         if len(r) == 0:
-            bot.send_message(message.chat.id, "В данный момент предсказаний нету, но мы их обязательно добавим")
+            bot.send_message(message.chat.id, "В данный момент предсказаний нету, их можно добавить через команду /menu")
         else:
             ms = random.choice(r)
             name = '@' + message.from_user.username if message.from_user.username else message.from_user.first_name
-            bot.send_message(message.chat.id, f"🔮")
+            bot.send_message(message.chat.id, "🔮")
             bot.send_message(message.chat.id, f"Предсказание для {name}:\n{ms}")
     else:
         bot.send_message(message.chat.id, "Упс что-то пошло не так, но мы это обязательно исправим")
@@ -157,6 +157,7 @@ def handle_message(message):
 if __name__ == '__main__':
     try:
         bot.polling(none_stop=True)
-        close_connection(conn)
     except Exception as e:
         print(f"Ошибка в боте: {e}")
+    finally:
+        close_connection(conn)
